@@ -3,6 +3,11 @@
 //==============================================================================
 MainComponent::MainComponent() : state (Stopped)
 {
+    // currentTime label
+    addAndMakeVisible(&currentTimeLabel);
+    currentTimeLabel.setText("00:00", juce::dontSendNotification);
+    currentTimeLabel.setJustificationType(juce::Justification::centred);
+    
     // open button
     addAndMakeVisible(&openButton);
     openButton.setButtonText("Open...");
@@ -28,6 +33,8 @@ MainComponent::MainComponent() : state (Stopped)
 
     formatManager.registerBasicFormats();
     transportSource.addChangeListener(this);
+    
+    MainComponent::startTimer(20);
     
     // Some platforms require permissions to open input channels so request that here
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -206,9 +213,10 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
-    openButton.setBounds(10, 10, getWidth()-20, 20);
-    playButton.setBounds(10, 40, getWidth()-20, 20);
-    stopButton.setBounds(10, 70, getWidth()-20, 20);
+    currentTimeLabel.setBounds(10, 10, getWidth()-20, 20);
+    openButton.setBounds(10, 40, getWidth()-20, 20);
+    playButton.setBounds(10, 70, getWidth()-20, 20);
+    stopButton.setBounds(10, 100, getWidth()-20, 20);
 }
 //![resized]
 
@@ -230,3 +238,26 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
    }
 }
 //![changeListenerCallback]
+
+//![timerCallback]
+void MainComponent::timerCallback()
+{
+    
+    if (transportSource.isPlaying())
+    {
+        juce::RelativeTime position (transportSource.getCurrentPosition());
+        
+        auto minutes = ((int) position.inMinutes()) % 60;
+        auto seconds = ((int) position.inSeconds()) % 60;
+        auto millis = ((int) position.inMilliseconds()) % 1000;
+        
+        auto positionString = juce::String::formatted("%02d:%02d:%03d", minutes, seconds, millis);
+        
+        currentTimeLabel.setText(positionString, juce::dontSendNotification);
+    }
+    else
+    {
+        currentTimeLabel.setText("00:00:000", juce::dontSendNotification);
+    }
+}
+//![timerCallback]

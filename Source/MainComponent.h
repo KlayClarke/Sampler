@@ -8,7 +8,7 @@
     your controls and content.
 */
 class MainComponent  : public juce::AudioAppComponent,
-public juce::ChangeListener
+public juce::ChangeListener, public juce::Timer
 {
 public:
     //![TransportState]
@@ -38,9 +38,13 @@ public:
     void paint (juce::Graphics& g) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
-    
+    void timerCallback() override;
 private:
     //==============================================================================
+    //![Labels]
+    juce::Label currentTimeLabel;
+    //![Labels]
+    
     //![Buttons]
     juce::TextButton openButton;
     juce::TextButton playButton;
