@@ -5,7 +5,7 @@ MainComponent::MainComponent() : state (Stopped)
 {
     addAndMakeVisible(&openButton);
     openButton.setButtonText("Open...");
-    openButton.onClick=NULL;
+    openButton.onClick=[this]{openButtonClicked();};
     
     // Make sure you set the size of the component after
     // you add any child components.
@@ -60,6 +60,34 @@ void MainComponent::releaseResources()
     // restarted due to a setting change.
 
     // For more details, see the help for AudioProcessor::releaseResources()
+}
+
+void MainComponent::openButtonClicked()
+{
+    MainComponent::chooser = std::make_unique<juce::FileChooser>("Select a .wav file to play...",
+                                                                 juce::File{},
+                                                                 "*.wav");
+    auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+    
+    MainComponent::chooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc){
+        auto file = fc.getResult();
+        
+        if (file != juce::File{})
+        {
+            auto* reader = formatManager.createReaderFor(file);
+            
+            if (reader != nullptr)
+            {
+                auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
+                
+                transportSource.setSource(newSource.get(),0,nullptr,reader->sampleRate);
+                
+                playButton.setEnabled(true);
+                
+                readerSource.reset(newSource.release());
+            }
+        }
+    });
 }
 
 //==============================================================================
