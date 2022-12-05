@@ -107,7 +107,7 @@ void MainComponent::openButtonClicked()
 {
     MainComponent::chooser = std::make_unique<juce::FileChooser>("Select a .wav file to play...",
                                                                  juce::File{},
-                                                                 "*.wav");
+                                                                 "*.wav;*.mp3;*.AIFF");
     auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
     
     MainComponent::chooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc){
@@ -242,22 +242,17 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
 //![timerCallback]
 void MainComponent::timerCallback()
 {
+    juce::RelativeTime currentPosition (transportSource.getCurrentPosition());
+    juce::RelativeTime totalTime (transportSource.getLengthInSeconds());
     
-    if (transportSource.isPlaying())
-    {
-        juce::RelativeTime position (transportSource.getCurrentPosition());
-        
-        auto minutes = ((int) position.inMinutes()) % 60;
-        auto seconds = ((int) position.inSeconds()) % 60;
-        auto millis = ((int) position.inMilliseconds()) % 1000;
-        
-        auto positionString = juce::String::formatted("%02d:%02d:%03d", minutes, seconds, millis);
-        
-        currentTimeLabel.setText(positionString, juce::dontSendNotification);
-    }
-    else
-    {
-        currentTimeLabel.setText("00:00:000", juce::dontSendNotification);
-    }
+    auto currentMinutes = ((int) currentPosition.inMinutes()) % 60;
+    auto currentSeconds = ((int) currentPosition.inSeconds()) % 60;
+    
+    auto totalMinutes = ((int) totalTime.inMinutes()) % 60;
+    auto totalSeconds = ((int) totalTime.inSeconds()) % 60;
+    
+    auto positionString = juce::String::formatted("%02d:%02d / %02d:%02d", currentMinutes, currentSeconds, totalMinutes, totalSeconds);
+    
+    currentTimeLabel.setText(positionString, juce::dontSendNotification);
 }
 //![timerCallback]
