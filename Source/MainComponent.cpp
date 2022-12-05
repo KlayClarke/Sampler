@@ -7,10 +7,25 @@ MainComponent::MainComponent() : state (Stopped)
     openButton.setButtonText("Open...");
     openButton.onClick=[this]{openButtonClicked();};
     
+    addAndMakeVisible(&playButton);
+    playButton.setButtonText("Play");
+    playButton.onClick = [this]{playButtonClicked();};
+    playButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
+    playButton.setEnabled(false);
+    
+    addAndMakeVisible(&stopButton);
+    stopButton.setButtonText("Stop");
+    stopButton.onClick = [this]{stopButtonClicked();};
+    stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
+    stopButton.setEnabled(false);
+    
     // Make sure you set the size of the component after
     // you add any child components.
     setSize (300, 200);
 
+    formatManager.registerBasicFormats();
+    transportSource.addChangeListener(this);
+    
     // Some platforms require permissions to open input channels so request that here
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
         && ! juce::RuntimePermissions::isGranted (juce::RuntimePermissions::recordAudio))
@@ -62,6 +77,7 @@ void MainComponent::releaseResources()
     // For more details, see the help for AudioProcessor::releaseResources()
 }
 
+//![openButtonClicked]
 void MainComponent::openButtonClicked()
 {
     MainComponent::chooser = std::make_unique<juce::FileChooser>("Select a .wav file to play...",
@@ -89,6 +105,70 @@ void MainComponent::openButtonClicked()
         }
     });
 }
+//![openButtonClicked]
+
+//![playButtonClicked]
+void MainComponent::playButtonClicked()
+{
+    if ((state==Stopped)||(state==Paused))
+    {
+        changeState(Starting);
+    } else if(state==Playing)
+    {
+        changeState(Pausing);
+    }
+}
+//![playButtonClicked]
+
+//![stopButtonClicked]
+void MainComponent::stopButtonClicked()
+{
+    if (state ==Paused)
+    {
+        changeState(Stopped);
+    }
+    else
+    {
+        changeState(Stopping);
+    }
+}
+//![stopButtonClicked]
+
+//![changeState]
+void MainComponent::changeState(TransportState newState)
+{
+   if (state != newState)
+   {
+       state = newState;
+       switch (state) {
+           case Stopped:
+               playButton.setButtonText("Play");
+               stopButton.setButtonText("Stop");
+               stopButton.setEnabled(false);
+               transportSource.setPosition(0.0);
+               break;
+           case Starting:
+               transportSource.start();
+               break;
+           case Playing:
+               playButton.setButtonText("Pause");
+               stopButton.setButtonText("Stop");
+               stopButton.setEnabled(true);
+               break;
+           case Pausing:
+               transportSource.stop();
+               break;
+           case Paused:
+               playButton.setButtonText("Resume");
+               stopButton.setButtonText("Return to Zero");
+               break;
+           case Stopping:
+               transportSource.stop();
+               break;
+       }
+   }
+}
+//![changeState]
 
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
@@ -107,4 +187,25 @@ void MainComponent::resized()
     // If you add any child components, this is where you should
     // update their positions.
     openButton.setBounds(10, 10, getWidth()-20, 20);
+    playButton.setBounds(10, 40, getWidth()-20, 20);
+    stopButton.setBounds(10, 70, getWidth()-20, 20);
 }
+
+//![changeListenerCallback]
+void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
+{
+   if (source==&transportSource)
+   {
+       if (transportSource.isPlaying())
+       {
+           changeState(Playing);
+       } else if ((state == Stopping) || (state == Playing))
+       {
+           changeState(Stopped);
+       } else if (Pausing == state)
+       {
+           changeState(Paused);
+       }
+   }
+}
+//![changeListenerCallback]

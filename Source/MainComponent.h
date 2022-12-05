@@ -7,25 +7,10 @@
     This component lives inside our window, and this is where you should put all
     your controls and content.
 */
-class MainComponent  : public juce::AudioAppComponent
+class MainComponent  : public juce::AudioAppComponent,
+public juce::ChangeListener
 {
 public:
-    //==============================================================================
-    MainComponent();
-    ~MainComponent() override;
-    
-    //==============================================================================
-    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
-    void releaseResources() override;
-    void openButtonClicked();
-    //==============================================================================
-    void paint (juce::Graphics& g) override;
-    void resized() override;
-    
-private:
-    //==============================================================================
-
     //![TransportState]
     enum TransportState
     {
@@ -37,7 +22,25 @@ private:
         Paused
     };
     //![TransportState]
+    //==============================================================================
+    MainComponent();
+    ~MainComponent() override;
     
+    //==============================================================================
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
+    void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
+    void releaseResources() override;
+    void changeState(TransportState newState);
+    void openButtonClicked();
+    void playButtonClicked();
+    void stopButtonClicked();
+    //==============================================================================
+    void paint (juce::Graphics& g) override;
+    void resized() override;
+    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
+    
+private:
+    //==============================================================================
     //![Buttons]
     juce::TextButton openButton;
     juce::TextButton playButton;
