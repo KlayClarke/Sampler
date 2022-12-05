@@ -1,11 +1,15 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent() : state (Stopped)
 {
+    addAndMakeVisible(&openButton);
+    openButton.setButtonText("Open...");
+    openButton.onClick=NULL;
+    
     // Make sure you set the size of the component after
     // you add any child components.
-    setSize (800, 600);
+    setSize (300, 200);
 
     // Some platforms require permissions to open input channels so request that here
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -65,6 +69,8 @@ void MainComponent::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     // You can add your drawing code here!
+    g.setColour(juce::Colours::white);
+    g.drawFittedText("Sampler", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void MainComponent::resized()
@@ -72,4 +78,5 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+    openButton.setBounds(10, 10, getWidth()-20, 20);
 }
