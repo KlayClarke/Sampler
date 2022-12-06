@@ -1,7 +1,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent() : state (Stopped)
+MainComponent::MainComponent() : state (Stopped), thumbnailCache(5), thumbnail(512, formatManager, thumbnailCache)
 {
     // currentTime label
     addAndMakeVisible(&currentTimeLabel);
@@ -33,6 +33,7 @@ MainComponent::MainComponent() : state (Stopped)
 
     formatManager.registerBasicFormats();
     transportSource.addChangeListener(this);
+    thumbnail.addChangeListener(this); // AudioThumbnail is a type of ChangeBroadcaster class -> we can register as a listener for changes (accounts for updates of our waveform)
     
     MainComponent::startTimer(20);
     
@@ -125,6 +126,8 @@ void MainComponent::openButtonClicked()
                 
                 playButton.setEnabled(true);
                 
+                thumbnail.setSource(new juce::FileInputSource(file));
+                
                 readerSource.reset(newSource.release());
             }
         }
@@ -195,15 +198,50 @@ void MainComponent::changeState(TransportState newState)
 }
 //![changeState]
 
+//![thumbnailChanged]
+void MainComponent::thumbnailChanged()
+{
+    repaint(); // to repaint waveform if audio file changes ???
+}
+//![thumbnailChanged]
+
 //==============================================================================
+//![paintIfNoFileLoaded]
+void MainComponent::paintIfNoFileLoaded(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds)
+{
+    g.setColour(juce::Colours::darkgrey);
+    g.fillRect(thumbnailBounds);
+    g.setColour(juce::Colours::white);
+    g.drawFittedText("No File Loaded", thumbnailBounds, juce::Justification::centred, 1);
+}
+//![paintIfNoFileLoaded]
+
+//![paintIfFileLoaded]
+void MainComponent::paintIfFileLoaded(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds)
+{
+    g.setColour(juce::Colours::white);
+    g.fillRect(thumbnailBounds);
+    g.setColour(juce::Colours::red);
+    thumbnail.drawChannels(g, thumbnailBounds, 0.0, thumbnail.getTotalLength(), 1.0f);
+}
+//![paintIfFileLoaded]
+
 //![paint]
 void MainComponent::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
     // You can add your drawing code here!
     g.setColour(juce::Colours::white);
+    
+    // waveform thumbnail styling code below
+    juce::Rectangle<int> thumbnailBounds (10, 130, getWidth()-20, getHeight()-120);
+    if (thumbnail.getNumChannels()==0)
+        // add paint for no file loaded (standard "No file loaded" text)
+        paintIfNoFileLoaded(g, thumbnailBounds);
+    else
+        // add paint for file loaded (waveform of currently loaded audio file)
+        paintIfFileLoaded(g, thumbnailBounds);
 }
 //![paint]
 
@@ -236,6 +274,7 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
            changeState(Paused);
        }
    }
+    if (source==&thumbnail) thumbnailChanged();
 }
 //![changeListenerCallback]
 
