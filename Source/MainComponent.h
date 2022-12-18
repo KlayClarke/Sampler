@@ -8,7 +8,8 @@
     your controls and content.
 */
 class MainComponent  : public juce::AudioAppComponent,
-public juce::ChangeListener, public juce::Timer
+                       public juce::ChangeListener,
+                       private juce::Timer
 {
 public:
     //![TransportState]

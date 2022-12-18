@@ -222,7 +222,15 @@ void MainComponent::paintIfFileLoaded(juce::Graphics &g, const juce::Rectangle<i
     g.setColour(juce::Colours::white);
     g.fillRect(thumbnailBounds);
     g.setColour(juce::Colours::red);
+    
+    auto audioLength = (float) thumbnail.getTotalLength();
     thumbnail.drawChannels(g, thumbnailBounds, 0.0, thumbnail.getTotalLength(), 1.0f);
+    
+    g.setColour(juce::Colours::green);
+    
+    auto audioPosition = (float) transportSource.getCurrentPosition();
+    auto drawPosition = (audioPosition / audioLength) * (float) thumbnailBounds.getWidth() + (float) thumbnailBounds.getX();
+    g.drawLine (drawPosition, (float) thumbnailBounds.getY(), drawPosition, (float) thumbnailBounds.getBottom(), 2.0f);
 }
 //![paintIfFileLoaded]
 
@@ -235,7 +243,7 @@ void MainComponent::paint (juce::Graphics& g)
     g.setColour(juce::Colours::white);
     
     // waveform thumbnail styling code below
-    juce::Rectangle<int> thumbnailBounds (10, 130, getWidth()-20, getHeight()-120);
+    juce::Rectangle<int> thumbnailBounds (10, 130, getWidth()-20, getHeight()-140);
     if (thumbnail.getNumChannels()==0)
         // add paint for no file loaded (standard "No file loaded" text)
         paintIfNoFileLoaded(g, thumbnailBounds);
@@ -293,5 +301,7 @@ void MainComponent::timerCallback()
     auto positionString = juce::String::formatted("%02d:%02d / %02d:%02d", currentMinutes, currentSeconds, totalMinutes, totalSeconds);
     
     currentTimeLabel.setText(positionString, juce::dontSendNotification);
+    
+    repaint();
 }
 //![timerCallback]
