@@ -35,3 +35,6 @@ Builds/MacOSX/Info-App.plist
 Builds/MacOSX/Sampler.xcodeproj/
 **/JuceLibraryCode
 **/Sampler.jucer
+
+# todo file
+TODO
