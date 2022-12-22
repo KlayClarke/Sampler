@@ -1,6 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <WaveformComponent.hpp>
 
 //==============================================================================
 /*
@@ -32,19 +33,20 @@ public:
     void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
     void changeState(TransportState newState);
-    void thumbnailChanged();
     void openButtonClicked();
     void playButtonClicked();
     void stopButtonClicked();
     //==============================================================================
-    void paintIfNoFileLoaded(juce::Graphics& g, const juce::Rectangle<int>& thumbnailBounds);
-    void paintIfFileLoaded(juce::Graphics& g, const juce::Rectangle<int>& thumbnailBounds);
     void paint (juce::Graphics& g) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     void timerCallback() override;
 private:
     //==============================================================================
+    //![Components]
+    WaveformComponent waveform;
+    //![Components]
+    
     //![Labels]
     juce::Label currentTimeLabel;
     //![Labels]
@@ -63,9 +65,6 @@ private:
     juce::AudioTransportSource transportSource; // can control playback of an audioformatreadersource object
 
     TransportState state; // the current state of audio playback (starting, playing, stopping, stopped)
-    
-    juce::AudioThumbnailCache thumbnailCache; // to cache low res version of audio file
-    juce::AudioThumbnail thumbnail;
     //![Variables]
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

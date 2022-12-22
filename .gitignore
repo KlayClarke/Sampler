@@ -31,6 +31,7 @@
 *.out
 *.app
 
-**/Builds
+Builds/MacOSX/Info-App.plist
+Builds/MacOSX/Sampler.xcodeproj/
 **/JuceLibraryCode
 **/Sampler.jucer
