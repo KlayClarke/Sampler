@@ -11,14 +11,16 @@
 #include <stdio.h>
 #include "JuceHeader.h"
 
-class PositionLineComponent : juce::Component
+class PositionLineComponent : public juce::Component, private juce::Timer
 {
 public:
-    PositionLineComponent();
+    PositionLineComponent(juce::AudioTransportSource &transportSource);
     ~PositionLineComponent();
     
-    void draw(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds, juce::AudioTransportSource &transportSource, float audioLength);
+    void timerCallback() override;
+    void paint(juce::Graphics &g) override;
 private:
+    juce::AudioTransportSource &transportSource;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PositionLineComponent);
 };
 #endif /* PositionLineComponent_hpp */

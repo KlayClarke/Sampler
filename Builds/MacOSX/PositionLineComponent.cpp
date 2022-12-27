@@ -7,9 +7,9 @@
 
 #include "PositionLineComponent.hpp"
 
-PositionLineComponent::PositionLineComponent()
+PositionLineComponent::PositionLineComponent(juce::AudioTransportSource &transportSource) : transportSource(transportSource)
 {
-    
+    PositionLineComponent::startTimer(40);
 }
 
 PositionLineComponent::~PositionLineComponent()
@@ -17,13 +17,21 @@ PositionLineComponent::~PositionLineComponent()
     
 }
 
-// draw position line on waveform
-void PositionLineComponent::draw(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds, juce::AudioTransportSource &transportSource, float audioLength)
+void PositionLineComponent::timerCallback()
 {
-    g.setColour(juce::Colours::black);
+    repaint();
+}
+
+void PositionLineComponent::paint(juce::Graphics &g)
+{
+    auto duration = (float) transportSource.getLengthInSeconds();
     
-    auto audioPosition = (float) transportSource.getCurrentPosition();
-    auto drawPosition = (audioPosition / audioLength) * (float) thumbnailBounds.getWidth() + (float) thumbnailBounds.getX();
-    
-    g.drawLine(drawPosition, (float) thumbnailBounds.getY(), drawPosition, (float) thumbnailBounds.getBottom(), 2.0f);
+    if (duration > 0.0)
+    {
+        auto audioPosition = (float) transportSource.getCurrentPosition();
+        auto drawPosition = (audioPosition / duration) * (float) getWidth();
+        
+        g.setColour(juce::Colours::green);
+        g.drawLine(drawPosition, 0.0f, drawPosition, (float) getHeight(), 2.0f);
+    }
 }

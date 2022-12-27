@@ -12,22 +12,21 @@
 #include "JuceHeader.h"
 #include <PositionLineComponent.hpp>
 
-class WaveformComponent : juce::Component, juce::ChangeListener
+class WaveformComponent : public juce::Component, public juce::ChangeListener
 {
 public:
-    WaveformComponent();
+    WaveformComponent(int sourceSamplesPerThumbnailSample, juce::AudioFormatManager &formatManager, juce::AudioThumbnailCache &thumbnailCache);
     ~WaveformComponent();
     
     void changeListenerCallback(juce::ChangeBroadcaster *source) override;
-    void paintIfNoFileAdded(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds);
-    void paintIfFileAdded(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds, juce::AudioTransportSource &transportSource);
+    void setFile(const juce::File &file);
+    void thumbnailChanged();
+    void paint(juce::Graphics &g) override;
+    void paintIfNoFileAdded(juce::Graphics &g);
+    void paintIfFileAdded(juce::Graphics &g);
     
-    juce::AudioThumbnail thumbnail;
 private:
-    juce::AudioThumbnailCache thumbnailCache;
-    juce::AudioFormatManager formatManager;
-    
-    PositionLineComponent positionLine;
+    juce::AudioThumbnail thumbnail;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WaveformComponent);
 };

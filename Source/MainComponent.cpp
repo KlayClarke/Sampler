@@ -1,13 +1,8 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent() : state (Stopped)
+MainComponent::MainComponent() : state (Stopped), thumbnailCache(5), waveformComp(512, formatManager, thumbnailCache), positionLineComp(transportSource)
 {
-    // currentTime label
-    addAndMakeVisible(&currentTimeLabel);
-    currentTimeLabel.setText("00:00", juce::dontSendNotification);
-    currentTimeLabel.setJustificationType(juce::Justification::centred);
-    
     // open button
     addAndMakeVisible(&openButton);
     openButton.setButtonText("Open...");
@@ -27,14 +22,16 @@ MainComponent::MainComponent() : state (Stopped)
     stopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
     stopButton.setEnabled(false);
     
+    // intialize waveform and position line components
+    addAndMakeVisible(&waveformComp);
+    addAndMakeVisible(&positionLineComp);
+    
     // Make sure you set the size of the component after
     // you add any child components.
     setSize (300, 200);
 
     formatManager.registerBasicFormats();
     transportSource.addChangeListener(this);
-    
-    MainComponent::startTimer(20);
     
     // Some platforms require permissions to open input channels so request that here
     if (juce::RuntimePermissions::isRequired (juce::RuntimePermissions::recordAudio)
@@ -87,7 +84,6 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     // Right now we are not producing any data, in which case we need to clear the buffer
     // (to prevent the output of random noise)
-    //bufferToFill.clearActiveBufferRegion();
 }
 //![getNextAudioBlock]
 
@@ -120,13 +116,9 @@ void MainComponent::openButtonClicked()
             if (reader != nullptr)
             {
                 auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
-                
                 transportSource.setSource(newSource.get(),0,nullptr,reader->sampleRate);
-                
                 playButton.setEnabled(true);
-                
-                waveform.thumbnail.setSource(new juce::FileInputSource(file));
-                
+                waveformComp.setFile(file);
                 readerSource.reset(newSource.release());
             }
         }
@@ -206,17 +198,8 @@ void MainComponent::paint (juce::Graphics& g)
     // You can add your drawing code here!
     g.setColour(juce::Colours::white);
     
-    // waveform thumbnail styling code below
-    juce::Rectangle<int> thumbnailBounds (10, 130, getWidth()-20, getHeight()-140);
-    
-    if (waveform.thumbnail.getNumChannels()==0)
-    {
-        waveform.paintIfNoFileAdded(g, thumbnailBounds);
-    }
-    else
-    {
-        waveform.paintIfFileAdded(g, thumbnailBounds, transportSource);
-    }
+    // waveform component paint
+    waveformComp.paint(g);
 }
 //![paint]
 
@@ -226,10 +209,14 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
-    currentTimeLabel.setBounds(10, 10, getWidth()-20, 20);
-    openButton.setBounds(10, 40, getWidth()-20, 20);
-    playButton.setBounds(10, 70, getWidth()-20, 20);
-    stopButton.setBounds(10, 100, getWidth()-20, 20);
+    openButton.setBounds(10, 10, getWidth()-20, 20);
+    playButton.setBounds(10, 40, getWidth()-20, 20);
+    stopButton.setBounds(10, 70, getWidth()-20, 20);
+    
+    // waveform thumbnail styling code below
+    juce::Rectangle<int> thumbnailBounds (10, 100, getWidth()-20, getHeight()-140);
+    waveformComp.setBounds(thumbnailBounds);
+    positionLineComp.setBounds(thumbnailBounds);
 }
 //![resized]
 
@@ -251,23 +238,3 @@ void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
    }
 }
 //![changeListenerCallback]
-
-//![timerCallback]
-void MainComponent::timerCallback()
-{
-    juce::RelativeTime currentPosition (transportSource.getCurrentPosition());
-    juce::RelativeTime totalTime (transportSource.getLengthInSeconds());
-    
-    auto currentMinutes = ((int) currentPosition.inMinutes()) % 60;
-    auto currentSeconds = ((int) currentPosition.inSeconds()) % 60;
-    
-    auto totalMinutes = ((int) totalTime.inMinutes()) % 60;
-    auto totalSeconds = ((int) totalTime.inSeconds()) % 60;
-    
-    auto positionString = juce::String::formatted("%02d:%02d / %02d:%02d", currentMinutes, currentSeconds, totalMinutes, totalSeconds);
-    
-    currentTimeLabel.setText(positionString, juce::dontSendNotification);
-    
-    repaint();
-}
-//![timerCallback]

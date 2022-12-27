@@ -6,9 +6,8 @@
 //
 
 #include "WaveformComponent.hpp"
-WaveformComponent::WaveformComponent() : thumbnail(512, formatManager, thumbnailCache), thumbnailCache(5)
+WaveformComponent::WaveformComponent(int sourceSamplesPerThumbnailSample, juce::AudioFormatManager &formatManager, juce::AudioThumbnailCache &thumbnailCache) : thumbnail(sourceSamplesPerThumbnailSample, formatManager, thumbnailCache)
 {
-    formatManager.registerBasicFormats();
     thumbnail.addChangeListener(this);
 }
 
@@ -17,29 +16,41 @@ WaveformComponent::~WaveformComponent()
     
 }
 
+void WaveformComponent::setFile(const juce::File &file)
+{
+    thumbnail.setSource(new juce::FileInputSource(file));
+}
+
 void WaveformComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
 {
-    
+    if (source==&thumbnail) thumbnailChanged();
 }
 
-void WaveformComponent::paintIfNoFileAdded(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds)
+void WaveformComponent::thumbnailChanged()
+{
+    repaint();
+}
+
+void WaveformComponent::paint(juce::Graphics &g)
+{
+    if (thumbnail.getNumChannels() == 0)
+        paintIfNoFileAdded(g);
+    else
+        paintIfFileAdded(g);
+}
+
+void WaveformComponent::paintIfNoFileAdded(juce::Graphics &g)
 {
     g.setColour(juce::Colours::darkgrey);
-    g.fillRect(thumbnailBounds);
+    g.fillRect(getLocalBounds());
     g.setColour(juce::Colours::white);
-    g.drawFittedText("No File Loaded", thumbnailBounds, juce::Justification::centred, 1);
+    g.drawFittedText("No File Loaded", getLocalBounds(), juce::Justification::centred, 1);
 }
 
-void WaveformComponent::paintIfFileAdded(juce::Graphics &g, const juce::Rectangle<int> &thumbnailBounds, juce::AudioTransportSource &transportSource)
+void WaveformComponent::paintIfFileAdded(juce::Graphics &g)
 {
-    // waveform style drawing
     g.setColour(juce::Colours::white);
-    g.fillRect(thumbnailBounds);
+    g.fillRect(getLocalBounds());
     g.setColour(juce::Colours::red);
-    
-    float audioLength = (float) thumbnail.getTotalLength();
-    thumbnail.drawChannels(g, thumbnailBounds, 0.0, thumbnail.getTotalLength(), 1.0f);
-    
-    // playback position line style drawing
-    positionLine.draw(g, thumbnailBounds, transportSource, audioLength);
+    thumbnail.drawChannels(g, getLocalBounds(), 0.0, thumbnail.getTotalLength(), 1.0f);
 }
