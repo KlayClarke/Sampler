@@ -36,7 +36,6 @@ public:
     void playButtonClicked();
     void stopButtonClicked();
     //==============================================================================
-    void paint (juce::Graphics& g) override;
     void resized() override;
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 private:

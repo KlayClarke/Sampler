@@ -190,19 +190,6 @@ void MainComponent::changeState(TransportState newState)
 //![changeState]
 
 //==============================================================================
-//![paint]
-void MainComponent::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-    // You can add your drawing code here!
-    g.setColour(juce::Colours::white);
-    
-    // waveform component paint
-    waveformComp.paint(g);
-}
-//![paint]
-
 //![resized]
 void MainComponent::resized()
 {
