@@ -35,3 +35,15 @@ void PositionLineComponent::paint(juce::Graphics &g)
         g.drawLine(drawPosition, 0.0f, drawPosition, (float) getHeight(), 2.0f);
     }
 }
+
+void PositionLineComponent::mouseDown(const juce::MouseEvent &event)
+{
+    auto duration = (float) transportSource.getLengthInSeconds();
+    
+    if (duration > 0.0)
+    {
+        auto clickPos = event.position.x;
+        auto audioPos = (clickPos / (float) getWidth()) * duration;
+        transportSource.setPosition((double) audioPos);
+    }
+}

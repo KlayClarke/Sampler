@@ -16,14 +16,14 @@ WaveformComponent::~WaveformComponent()
     
 }
 
-void WaveformComponent::setFile(const juce::File &file)
-{
-    thumbnail.setSource(new juce::FileInputSource(file));
-}
-
 void WaveformComponent::changeListenerCallback(juce::ChangeBroadcaster *source)
 {
     if (source==&thumbnail) thumbnailChanged();
+}
+
+void WaveformComponent::setFile(const juce::File &file)
+{
+    thumbnail.setSource(new juce::FileInputSource(file));
 }
 
 void WaveformComponent::thumbnailChanged()

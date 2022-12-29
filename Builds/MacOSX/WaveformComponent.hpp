@@ -24,7 +24,6 @@ public:
     void paint(juce::Graphics &g) override;
     void paintIfNoFileAdded(juce::Graphics &g);
     void paintIfFileAdded(juce::Graphics &g);
-    
 private:
     juce::AudioThumbnail thumbnail;
     
