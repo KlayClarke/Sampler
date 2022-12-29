@@ -47,3 +47,8 @@ void PositionLineComponent::mouseDown(const juce::MouseEvent &event)
         transportSource.setPosition((double) audioPos);
     }
 }
+
+void PositionLineComponent::mouseDrag(const juce::MouseEvent &event)
+{
+    mouseDown(event);
+}
